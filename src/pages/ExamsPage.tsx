@@ -20,7 +20,7 @@ export const ExamsPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
         {EXAM_CATEGORIES.map((cat) => (
-          <Link key={cat.id} to={`/exam/${cat.slug}`}>
+          <Link key={cat.id} to={`/exams/${cat.slug}`}>
             <Card3D className="h-full flex flex-col justify-between group">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">

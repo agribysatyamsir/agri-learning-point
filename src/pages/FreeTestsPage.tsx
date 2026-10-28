@@ -57,7 +57,7 @@ export const FreeTestsPage: React.FC = () => {
               <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> Open to all students
               </span>
-              <Link to={`/exam/${test.id}`}>
+              <Link to={`/exam/attempt/${test.id}`}>
                 <Button variant="primary" size="sm">
                   Start Test Now
                 </Button>

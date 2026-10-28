@@ -139,7 +139,7 @@ export const StudentDashboardPage: React.FC = () => {
                     <h4 className="text-sm font-bold text-white">{test.title}</h4>
                     <p className="text-xs text-slate-400">Marking: +{test.markingScheme.correct} / -{test.markingScheme.wrong}</p>
                   </div>
-                  <Link to={`/exam/${test.id}`}>
+                  <Link to={`/exam/attempt/${test.id}`}>
                     <Button variant="primary" size="sm">
                       Take Test
                     </Button>

@@ -151,7 +151,7 @@ export const HomePage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {EXAM_CATEGORIES.map((cat) => (
-            <Link key={cat.id} to={`/exam/${cat.slug}`}>
+            <Link key={cat.id} to={`/exams/${cat.slug}`}>
               <Card3D className="h-full flex flex-col justify-between group hover:border-emerald-500/40">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -272,7 +272,7 @@ export const HomePage: React.FC = () => {
 
               <div className="pt-4 mt-4 border-t border-slate-800 flex items-center justify-between">
                 <span className="text-xs text-slate-400">{test.attemptsAllowed} Attempts Total</span>
-                <Link to={`/exam/${test.id}`}>
+                <Link to={`/exam/attempt/${test.id}`}>
                   <Button variant={test.isFree ? 'primary' : 'gold'} size="sm">
                     {test.isFree ? 'Start Test' : 'Enroll to Unlock'}
                   </Button>

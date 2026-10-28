@@ -62,7 +62,7 @@ export const TestSeriesPage: React.FC = () => {
 
             <div className="pt-6 mt-6 border-t border-slate-800 flex items-center justify-between">
               <span className="text-xs text-slate-400">{test.isFree ? 'No payment required' : 'Course enrollment required'}</span>
-              <Link to={`/exam/${test.id}`}>
+              <Link to={`/exam/attempt/${test.id}`}>
                 <Button variant={test.isFree ? 'primary' : 'gold'} size="sm">
                   {test.isFree ? 'Start Test' : 'Unlock Series'}
                 </Button>

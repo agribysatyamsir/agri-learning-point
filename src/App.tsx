@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from 'react-router-dom';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
@@ -16,11 +16,12 @@ import { StudentDashboardPage } from './pages/StudentDashboardPage';
 import { ExamRunnerPage } from './pages/ExamRunnerPage';
 import { ExamResultsPage } from './pages/ExamResultsPage';
 import { AdminPage } from './pages/AdminPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   // Hide Navbar/Footer inside the full-screen examination runner
-  const isExamRunner = location.pathname.startsWith('/exam/') && !location.pathname.startsWith('/exam/results') && !location.pathname.startsWith('/exams');
+  const isExamRunner = location.pathname.startsWith('/exam/attempt/');
 
   if (isExamRunner) {
     return <>{children}</>;
@@ -35,21 +36,34 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
+// Backward-compatibility redirector for legacy links /exam/:id
+const LegacyExamRedirect: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  // If it starts with 'test-' or 'mock-', route to attempt, else to exams info
+  if (id && (id.startsWith('test-') || id.startsWith('mock-'))) {
+    return <Navigate to={`/exam/attempt/${id}`} replace />;
+  }
+  return <Navigate to={`/exams/${id}`} replace />;
+};
+
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Layout>
         <Routes>
-          {/* Public Routes */}
+          {/* Public Streams & Catalogs */}
           <Route path="/" element={<HomePage />} />
           <Route path="/exams" element={<ExamsPage />} />
-          <Route path="/exam/:slug" element={<ExamDetailPage />} />
+          <Route path="/exams/:slug" element={<ExamDetailPage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/course/:slug" element={<CourseDetailPage />} />
           <Route path="/test-series" element={<TestSeriesPage />} />
           <Route path="/test-series/:slug" element={<TestSeriesPage />} />
           <Route path="/free-tests" element={<FreeTestsPage />} />
           
+          {/* Backward compatibility for legacy /exam/:id */}
+          <Route path="/exam/:id" element={<LegacyExamRedirect />} />
+
           {/* Policy and Informational Routes */}
           <Route path="/about" element={<LegalPage />} />
           <Route path="/contact" element={<LegalPage />} />
@@ -66,12 +80,15 @@ export const App: React.FC = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<StudentDashboardPage />} />
 
-          {/* Examination Runner & Results */}
-          <Route path="/exam/:testId" element={<ExamRunnerPage />} />
+          {/* Unambiguous Examination Runner & Results */}
+          <Route path="/exam/attempt/:testId" element={<ExamRunnerPage />} />
           <Route path="/exam/results/:attemptId" element={<ExamResultsPage />} />
 
           {/* Admin Control Center */}
           <Route path="/admin" element={<AdminPage />} />
+
+          {/* 404 Not Found Catch-All */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

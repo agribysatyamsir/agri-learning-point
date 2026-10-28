@@ -207,7 +207,7 @@ export const ExamResultsPage: React.FC = () => {
             <span>Want to re-test your conceptual retention? </span>
             <strong className="text-slate-200">Practice attempts feature shuffled options without affecting your ranked score.</strong>
           </div>
-          <Link to={`/exam/${result.testId || 'test-1'}`}>
+          <Link to={`/exam/attempt/${result.testId || 'test-1'}`}>
             <Button variant="gold" size="sm" className="gap-1.5 whitespace-nowrap">
               <RotateCcw className="w-4 h-4" />
               Start Practice Reattempt #1

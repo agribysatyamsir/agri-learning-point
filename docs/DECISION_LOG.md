@@ -42,3 +42,26 @@
 - **Context:** AI generation must not cause latency spikes or non-deterministic test experiences for students.
 - **Decision:** AI Question Factory generates, verifies, and stores questions and detailed explanations in the database prior to publishing. During an active exam, the test runner reads exclusively from static database records.
 - **Consequences:** 100% deterministic exam performance, zero third-party API latency impact on live attempts, and adherence to cost quotas.
+
+
+---
+
+## ADR-006: Cloudflare Worker API & Vite Static Assets Deployment Topology
+- **Date:** 2026-10-28
+- **Status:** Approved
+- **Context:** Historical documentation referenced Next.js server runtime, while the repository was deployed as a client-side Vite SPA on Cloudflare Workers static assets without an API layer. Sensitive operations (Supabase Service Key, Turso Auth, Razorpay webhook validation, and AI provider calls) cannot safely run on the client.
+- **Decision:** Unify the stack using Cloudflare Workers with Assets: `wrangler.jsonc` defines `main: "src/worker/index.ts"` alongside `assets: { directory: "./dist", binding: "ASSETS" }`. All `/api/*` endpoints execute securely within the edge worker script where environment secrets are shielded from client bundles. Non-API requests fall through to `env.ASSETS.fetch(request)` with SPA client-side routing fallback.
+- **Consequences:** Provides a single, unified deployment target on Cloudflare (`https://agri-learning-point.agribysatyamsir.workers.dev`), eliminates architecture ambiguity, keeps client bundles lightweight, and ensures absolute server-side credential isolation.
+
+---
+
+## ADR-007: Unambiguous Routing Hierarchy for Exams and Live Attempts
+- **Date:** 2026-10-28
+- **Status:** Approved
+- **Context:** `App.tsx` contained overlapping patterns `/exam/:slug` (ExamDetailPage) and `/exam/:testId` (ExamRunnerPage), creating route resolution collision in React Router.
+- **Decision:** Establish clear, distinct path namespaces:
+  1. `/exams`: All exam categories list.
+  2. `/exams/:slug`: Specific exam information, syllabus, and available test series (`ExamDetailPage`).
+  3. `/exam/attempt/:testId`: Full-screen Computer-Based Test (CBT) examination runner (`ExamRunnerPage`).
+  4. `/exam/results/:attemptId`: Score report, analytics, and solution explanations (`ExamResultsPage`).
+- **Consequences:** Eliminates routing ambiguity, enables reliable deep linking, and ensures browser history (back/forward) functions correctly.
