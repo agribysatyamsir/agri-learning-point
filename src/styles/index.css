@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-deep: #070B19;
+    --bg-surface: #0E172A;
+    --bg-elevated: #1E293B;
+    --primary: #10B981;
+    --primary-hover: #059669;
+    --gold: #F59E0B;
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+  }
+
+  body {
+    background-color: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Tasteful 3D Perspective & Interaction Styles */
+.card-3d-wrapper {
+  perspective: 1000px;
+}
+
+.card-3d {
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-3d:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.7), 0 0 20px -3px rgba(16, 185, 129, 0.2);
+  }
+  
+  .card-3d-gold:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.7), 0 0 20px -3px rgba(245, 158, 11, 0.2);
+  }
+}
+
+/* Reduced Motion Safety */
+@media (prefers-reduced-motion: reduce) {
+  .card-3d,
+  .card-3d:hover,
+  .card-3d-gold,
+  .card-3d-gold:hover {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* Custom Glassmorphism */
+.glass-panel {
+  background: rgba(14, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-nav {
+  background: rgba(7, 11, 25, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
