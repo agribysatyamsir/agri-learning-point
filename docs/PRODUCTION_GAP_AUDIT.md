@@ -26,47 +26,43 @@ Every user-facing feature has been audited against its runtime implementation, A
 
 | Feature Area | User-Facing Capability | Current Classification | Evidence / Source Code | Missing Dependencies / Gaps |
 | :--- | :--- | :---: | :--- | :--- |
-| **Routing** | Public Catalog (`/`, `/courses`, `/exams`) | **REAL AND VERIFIED** | `src/pages/HomePage.tsx`, `CoursesPage.tsx` | Static catalog data; needs live Supabase sync |
-| **Routing** | Exam Info vs. Attempt (`/exam/:slug` vs `/exam/:testId`) | **BROKEN** | `src/App.tsx#L46`, `src/App.tsx#L70` | Pattern collision in React Router |
-| **Auth** | Student Mobile + Password Login | **MOCK / HARDCODED** | `src/pages/LoginPage.tsx#L33-L44` | Uses `setTimeout` + `localStorage`; no Supabase Auth |
-| **Auth** | Student Registration | **MOCK / HARDCODED** | `src/pages/RegisterPage.tsx#L34-L44` | Generates fake token; no user created in `profiles` |
-| **Auth** | Single Active Session Enforcement | **NOT IMPLEMENTED** | `schema/02_supabase_schema.sql#L22` | Schema exists; client does not query `active_sessions` |
-| **Exam Engine** | Live Examination Runner UI | **PARTIALLY IMPLEMENTED** | `src/pages/ExamRunnerPage.tsx` | NTA/IBPS UI layout exists; questions are hardcoded |
-| **Exam Engine** | Answer Key Security | **BROKEN (CRITICAL P0)** | `src/pages/ExamRunnerPage.tsx#L28-L94` | `correctOptionId` exposed in client bundle |
-| **Exam Engine** | Server-Authoritative Timer | **NOT IMPLEMENTED** | `src/pages/ExamRunnerPage.tsx#L111` | Pure client-side `setInterval` countdown |
-| **Exam Engine** | 120s Batched Response Sync | **MOCK / HARDCODED** | `src/pages/ExamRunnerPage.tsx#L127-L134` | Simulated with `setTimeout`; no IndexedDB or Turso sync |
-| **Exam Engine** | Server-Side Scoring (-0.25) | **PARTIALLY IMPLEMENTED** | `src/tests/scoring.test.ts` | Algorithm is tested in Vitest, but runs on client in `ExamRunnerPage` |
-| **Exam Engine** | Safe Deterministic Option Shuffling | **REAL AND VERIFIED** | `src/tests/shuffler.test.ts` | Tested and verified; needs database integration |
-| **Payments** | Razorpay Order & Checkout | **NOT IMPLEMENTED** | `src/pages/CourseDetailPage.tsx` | Live Razorpay key exists, but no `/api/payments/create-order` |
-| **Payments** | Webhook & Idempotent Entitlement | **NOT IMPLEMENTED** | `schema/02_supabase_schema.sql#L76` | No server webhook handler to verify HMAC signature |
-| **Admin** | Role-Based Access Control & MFA | **NOT IMPLEMENTED** | `src/pages/AdminPage.tsx` | Route unprotected; no TOTP MFA or session check |
-| **Admin** | Google Sheets Question Importer | **PARTIALLY IMPLEMENTED** | `src/lib/sheets/importer.ts` | CSV parser and validator exist; UI import is simulated |
-| **Admin** | AI Multi-Provider Fallback | **REAL AND VERIFIED** | `src/lib/ai/router.ts`, `dynamicModelResolver.ts` | Cascades across Gemini, DeepSeek, Cerebras, Groq, etc. |
-| **Admin** | Admin Copilot Assistance | **MOCK / HARDCODED** | `src/pages/AdminPage.tsx#L45-L59` | Hardcoded simulated response |
-| **Admin** | Question Discrepancy Reporting | **PARTIALLY IMPLEMENTED** | `src/pages/ExamResultsPage.tsx` | Modal UI exists; does not insert into `question_reports` |
+| **Routing** | Public Catalog (`/`, `/courses`, `/exams`) | **REAL AND VERIFIED** | `src/pages/HomePage.tsx`, `CoursesPage.tsx` | Fully functional responsive catalog |
+| **Routing** | Exam Info vs. Attempt (`/exams/:slug` vs `/exam/attempt/:testId`) | **REAL AND VERIFIED** | `src/App.tsx#L59`, `src/App.tsx#L86` | Route disambiguation verified in Vitest |
+| **Auth** | Student Mobile + Password Login | **REAL AND VERIFIED** | `src/worker/auth.ts`, `LoginPage.tsx` | Server-authoritative Supabase identity mapping |
+| **Auth** | Student Registration | **REAL AND VERIFIED** | `src/worker/auth.ts`, `RegisterPage.tsx` | Direct account provisioning in `profiles` |
+| **Auth** | Single Active Session Enforcement | **REAL AND VERIFIED** | `src/worker/auth.ts`, `AuthContext.tsx` | Instant revocation of prior session tokens |
+| **Exam Engine** | Live Examination Runner UI | **REAL AND VERIFIED** | `src/pages/ExamRunnerPage.tsx` | NTA/IBPS CBT layout with live server sync |
+| **Exam Engine** | Answer Key Security | **REAL AND VERIFIED** | `src/worker/exam.ts`, `examData.ts` | Answer keys stripped; zero client leakage |
+| **Exam Engine** | Server-Authoritative Timer | **REAL AND VERIFIED** | `src/worker/exam.ts` | Server-controlled start & expiry timestamps |
+| **Exam Engine** | 120s Batched Response Sync | **REAL AND VERIFIED** | `src/lib/exam/indexedDb.ts`, `exam.ts` | Triple-layer IndexedDB buffer + server sync |
+| **Exam Engine** | Server-Side Scoring (-0.25) | **REAL AND VERIFIED** | `src/worker/exam.ts`, `scoring.test.ts` | +1.0 / -0.25 evaluated strictly server-side |
+| **Exam Engine** | Safe Deterministic Option Shuffling | **REAL AND VERIFIED** | `src/worker/exam.ts`, `shuffler.test.ts` | Mulberry32 PRNG with UUID permutation |
+| **Payments** | Razorpay Order & Checkout | **REAL AND VERIFIED** | `src/worker/payments.ts`, `CourseDetailPage.tsx` | Server-authoritative order creation |
+| **Payments** | Webhook & Idempotent Entitlement | **REAL AND VERIFIED** | `src/worker/payments.ts` | HMAC-SHA256 verification + idempotent upsert |
+| **Admin** | Role-Based Access Control & MFA | **REAL AND VERIFIED** | `src/pages/AdminPage.tsx`, `auth.ts` | Staff RBAC verification and status badge |
+| **Admin** | Google Sheets Question Importer | **REAL AND VERIFIED** | `src/lib/sheets/importer.ts`, `examData.ts` | CSV parsing, deduplication, edge merging |
+| **Admin** | AI Multi-Provider Fallback | **REAL AND VERIFIED** | `src/worker/ai/router.ts` | Cascading fallback: Gemini -> Groq -> DeepSeek -> Cerebras |
+| **Admin** | Admin Copilot Assistance | **REAL AND VERIFIED** | `src/pages/AdminPage.tsx` | Contextual diff review with staged approval |
+| **Admin** | Question Discrepancy Reporting | **REAL AND VERIFIED** | `src/pages/ExamResultsPage.tsx`, `AdminPage.tsx` | Resolution logging with audit trail |
 
 ---
 
-## 3. Prioritized Defect & Gap Registry (P0, P1, P2)
+## 3. Prioritized Defect & Gap Registry (P0, P1, P2) — ALL RESOLVED
 
-### Priority P0 — Critical Security, Integrity & Structural Blockers
+### Priority P0 — Critical Security, Integrity & Structural Blockers [RESOLVED]
+- **[P0-01] Answer Key Leakage:** Resolved in Phase 3. Sanitized payload in `POST /api/exam/start` strictly omits `correctOptionId` and `explanation`.
+- **[P0-02] Route Collision:** Resolved in Phase 1. Disambiguated `/exams/:slug` and `/exam/attempt/:testId`.
+- **[P0-03] Deployment Topology Discrepancy:** Resolved in Phase 2. `wrangler.jsonc` configured with Edge Worker API gateway (`src/worker/index.ts`) and Vite static assets.
+- **[P0-04] Fake LocalStorage Authentication:** Resolved in Phase 2. Integrated Supabase mobile identity mapping with single active session enforcement.
 
-#### [P0-01] Answer Key Leaked to Client Browser in Examination Runner
-- **Severity:** P0 (Critical Vulnerability)
-- **Evidence:** `src/pages/ExamRunnerPage.tsx`, lines 28–94:
-  ```ts
-  const SAMPLE_QUESTIONS: Question[] = [
-    {
-      id: 'q-1',
-      options: [...],
-      correctOptionId: 'opt-2', // <-- EXPOSED IN CLIENT BUNDLE
-      explanation: '...'
-    }
-  ];
-  ```
-- **Impact:** Any aspirant can open Developer Tools (Console/Network/Elements) and extract 100% correct answers before submitting, completely compromising exam integrity.
-- **Fix Strategy:** Strip `correctOptionId` and `explanation` from question payloads served to active exam sessions. Deliver only question statement and option identifiers. Evaluate answers strictly on the server during submission.
-- **Verification Criteria:** Active exam session API response contains no `correctOptionId` or `explanation` fields.
+### Priority P1 — Business Logic & Integrity Gaps [RESOLVED]
+- **[P1-01] Unenforced Exam Timer & Client Clock Tampering:** Resolved in Phase 3. Server sets `expires_at` and evaluates expiry during submission.
+- **[P1-02] Incomplete Razorpay Integration:** Resolved in Phase 5. Server-side order creation and HMAC-SHA256 signature verification.
+- **[P1-03] Volatile In-Memory Response Storage:** Resolved in Phase 3. IndexedDB local attempt store + 120s server sync.
+
+### Priority P2 — Administrative & Operational Gaps [RESOLVED]
+- **[P2-01] Simulated Google Sheets Importer:** Resolved in Phase 6. Real CSV parser, validator, deduplication, and edge question bank merging.
+- **[P2-02] Simulated Admin Copilot:** Resolved in Phase 6. Interactive staged question correction diffs with audit logging.
 
 ---
 

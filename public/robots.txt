@@ -4,4 +4,4 @@ Disallow: /admin
 Disallow: /dashboard
 Disallow: /exam/
 
-Sitemap: https://learning-point.pages.dev/sitemap.xml
+Sitemap: https://agri-learning-point.agribysatyamsir.workers.dev/sitemap.xml

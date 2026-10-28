@@ -65,3 +65,21 @@
   3. `/exam/attempt/:testId`: Full-screen Computer-Based Test (CBT) examination runner (`ExamRunnerPage`).
   4. `/exam/results/:attemptId`: Score report, analytics, and solution explanations (`ExamResultsPage`).
 - **Consequences:** Eliminates routing ambiguity, enables reliable deep linking, and ensures browser history (back/forward) functions correctly.
+
+---
+
+## ADR-008: Server-Authoritative Razorpay HMAC-SHA256 Verification & Idempotency
+- **Date:** 2026-10-28
+- **Status:** Approved
+- **Context:** Student payments and course entitlements must be secure against client tampering, forged payloads, and replay attacks.
+- **Decision:** All payments originate with a server-created Razorpay order (`POST /api/payments/create-order`). Client success callbacks are never trusted alone; fulfillment requires cryptographic HMAC-SHA256 verification of `order_id|payment_id` against `RAZORPAY_KEY_SECRET`. Webhooks at `POST /api/webhooks/razorpay` verify raw-body signatures and execute idempotent upserts on the `enrollments` table with a unique `(user_id, course_id)` constraint.
+- **Consequences:** Eliminates payment fraud, guarantees students receive course entitlements even if their browser disconnects immediately after payment, and safely handles webhook retries.
+
+---
+
+## ADR-009: Multi-Provider AI Fallback Chain & Human-in-the-Loop Review
+- **Date:** 2026-10-28
+- **Status:** Approved
+- **Context:** Automated question generation requires 99.9% availability while maintaining strict agricultural domain accuracy and eliminating hallucinations.
+- **Decision:** Implement a server-side cascading fallback engine in the Cloudflare Edge Worker: Google Gemini 2.5 Flash -> Groq Llama 3.3 70B -> DeepSeek -> Cerebras, with an 8-second timeout per provider and an offline rule-based fallback. All generated questions require explicit human-reviewer approval through the Admin Operations Center before inclusion in active student test pools.
+- **Consequences:** High-availability question generation, zero runtime AI dependencies during exams, and strict editorial accuracy for Indian agriculture exam standards.
