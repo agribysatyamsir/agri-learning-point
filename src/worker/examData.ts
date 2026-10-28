@@ -179,3 +179,14 @@ export const MASTER_QUESTIONS: MasterQuestion[] = [
     difficulty: 'easy',
   },
 ];
+
+export function addMasterQuestions(newQuestions: MasterQuestion[]): number {
+  let added = 0;
+  for (const q of newQuestions) {
+    if (!MASTER_QUESTIONS.some((existing) => existing.id === q.id || existing.statement === q.statement)) {
+      MASTER_QUESTIONS.push(q);
+      added++;
+    }
+  }
+  return added;
+}

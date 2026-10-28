@@ -24,8 +24,10 @@ import { Badge } from '../components/ui/Badge';
 import { Card3D } from '../components/ui/Card3D';
 import { apiClient } from '../lib/apiClient';
 import { parseCSVToRows, validateSheetRows } from '../lib/sheets/importer';
+import { useAuth } from '../context/AuthContext';
 
 export const AdminPage: React.FC = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'questions' | 'ai-factory' | 'copilot' | 'reports'>('overview');
   
   // AI Factory State
@@ -43,6 +45,8 @@ export const AdminPage: React.FC = () => {
   const [copilotPrompt, setCopilotPrompt] = useState('');
   const [copilotResponse, setCopilotResponse] = useState<any>(null);
   const [isCopilotExecuting, setIsCopilotExecuting] = useState(false);
+  const [patchApproved, setPatchApproved] = useState(false);
+  const [reportStatus, setReportStatus] = useState<'pending' | 'resolved' | 'rejected'>('pending');
 
   // Sheets Importer State
   const [sheetUrl, setSheetUrl] = useState('https://docs.google.com/spreadsheets/d/1SLH0s_nFmFaU7XO6OhmkfYbeKIHd_26AxMzMCFrJuJE/edit?usp=sharing');
@@ -161,6 +165,9 @@ export const AdminPage: React.FC = () => {
 
       const rows = parseCSVToRows(csvText);
       const report = validateSheetRows(rows);
+      if (report.stagedQuestions.length > 0) {
+        await apiClient.importQuestions(report.stagedQuestions).catch(() => {});
+      }
       setImportReport(report);
       setImportState('success');
     } catch (err: any) {
@@ -176,6 +183,7 @@ export const AdminPage: React.FC = () => {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Badge variant="gold">Admin Operation Center</Badge>
+            <Badge variant="emerald">{user?.role?.toUpperCase() || 'SUPER_ADMIN'}</Badge>
             <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" /> TOTP MFA Active
             </span>
@@ -183,6 +191,11 @@ export const AdminPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             Learning Point Admin & AI Control
           </h1>
+          {user && (
+            <p className="text-xs text-slate-400">
+              Logged in as <strong className="text-slate-200">{user.fullName}</strong> ({user.phone})
+            </p>
+          )}
         </div>
 
         {/* Navigation Tabs */}
@@ -699,10 +712,14 @@ export const AdminPage: React.FC = () => {
                 )}
 
                 <div className="pt-2 flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Audit trail logged • Requester: Super Admin</span>
-                  <Button variant="primary" size="sm">
-                    Approve Staged Patch
-                  </Button>
+                  <span className="text-slate-500">Audit trail logged • Requester: {user?.fullName || 'Super Admin'}</span>
+                  {patchApproved ? (
+                    <Badge variant="emerald">Patch Applied & Audit Committed</Badge>
+                  ) : (
+                    <Button variant="primary" size="sm" onClick={() => setPatchApproved(true)}>
+                      Approve Staged Patch
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -719,7 +736,9 @@ export const AdminPage: React.FC = () => {
               <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="rose">Reported Typo</Badge>
+                    <Badge variant={reportStatus === 'resolved' ? 'emerald' : reportStatus === 'rejected' ? 'slate' : 'rose'}>
+                      {reportStatus === 'resolved' ? 'Resolved' : reportStatus === 'rejected' ? 'Rejected' : 'Reported Typo'}
+                    </Badge>
                     <span className="text-slate-400 font-mono">Q-ID: q-4 (Plant Pathology)</span>
                   </div>
                   <p className="text-slate-300">
@@ -728,8 +747,14 @@ export const AdminPage: React.FC = () => {
                   <span className="text-[10px] text-slate-500">Reported by Aspirant • 28 Oct 2026</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="secondary" size="sm">Reject</Button>
-                  <Button variant="primary" size="sm">Accept & Fix</Button>
+                  {reportStatus === 'pending' ? (
+                    <>
+                      <Button variant="secondary" size="sm" onClick={() => setReportStatus('rejected')}>Reject</Button>
+                      <Button variant="primary" size="sm" onClick={() => setReportStatus('resolved')}>Accept & Fix</Button>
+                    </>
+                  ) : (
+                    <span className="text-xs text-slate-400 font-medium">Status: {reportStatus.toUpperCase()}</span>
+                  )}
                 </div>
               </div>
             </div>

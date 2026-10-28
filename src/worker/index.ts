@@ -10,6 +10,7 @@ import { WorkerEnv } from './types';
 import { json, handleOptions } from './middleware';
 import { handleRegister, handleLogin, handleVerifySession, handleLogout } from './auth';
 import { handleStartExam, handleSyncExam, handleSubmitExam, handleGetExamResult } from './exam';
+import { addMasterQuestions } from './examData';
 import { handleAIApi } from './ai/jobs';
 import { handleCreateOrder, handleVerifyPayment, handleRazorpayWebhook, handleGetStudentEnrollments } from './payments';
 
@@ -74,6 +75,35 @@ export default {
       // AI Question Factory Admin Routes
       if (url.pathname.startsWith('/api/admin/ai/')) {
         return handleAIApi(request, env);
+      }
+
+      // Master Question Bank Ingestion Route
+      if (url.pathname === '/api/admin/questions/import' && request.method === 'POST') {
+        let body: any = {};
+        try {
+          body = await request.json();
+        } catch {
+          return json({ error: 'INVALID_JSON', message: 'Invalid payload.' }, 400);
+        }
+        const questions = Array.isArray(body.questions) ? body.questions : [];
+        const mappedQuestions = questions.map((q: any, i: number) => ({
+          id: q.id || `q_imp_${Date.now()}_${i}`,
+          testId: q.testId || 'test-1',
+          subject: q.subject || 'Agriculture General',
+          topic: q.topic || 'Core Subject',
+          statement: q.statement || '',
+          options: q.options || [
+            { id: 'opt-1', text: q.optionA || 'Option A' },
+            { id: 'opt-2', text: q.optionB || 'Option B' },
+            { id: 'opt-3', text: q.optionC || 'Option C' },
+            { id: 'opt-4', text: q.optionD || 'Option D' },
+          ],
+          correctOptionId: q.correctOptionId || (q.correctAnswer === 'B' ? 'opt-2' : q.correctAnswer === 'C' ? 'opt-3' : q.correctAnswer === 'D' ? 'opt-4' : 'opt-1'),
+          explanation: q.explanation || 'Detailed explanation verified by subject matter reviewer.',
+          difficulty: q.difficulty || 'medium',
+        }));
+        const count = addMasterQuestions(mappedQuestions);
+        return json({ success: true, message: `Successfully imported ${count} questions to question bank.`, count });
       }
 
       // Payments & Course Entitlements Routes

@@ -183,6 +183,14 @@ class ApiClient {
     });
   }
 
+  // Question Bank Administration Operations
+  public async importQuestions(questions: any[]): Promise<any> {
+    return this.request('/api/admin/questions/import', {
+      method: 'POST',
+      body: JSON.stringify({ questions }),
+    });
+  }
+
   // Payment & Enrollment Operations
   public async createPaymentOrder(courseId: string, amount: number): Promise<any> {
     return this.request('/api/payments/create-order', {

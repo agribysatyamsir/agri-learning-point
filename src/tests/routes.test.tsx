@@ -152,7 +152,9 @@ describe('Comprehensive Section Verification across Learning Point Platform', ()
   it('11. AdminPage renders operations center, question importer, AI Factory, and Copilot', () => {
     render(
       <MemoryRouter>
-        <AdminPage />
+        <AuthProvider>
+          <AdminPage />
+        </AuthProvider>
       </MemoryRouter>
     );
     expect(screen.getAllByText(/Learning Point Admin & AI Control/i).length).toBeGreaterThan(0);
