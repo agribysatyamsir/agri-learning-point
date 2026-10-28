@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /exam/
+
+Sitemap: https://learning-point.pages.dev/sitemap.xml
