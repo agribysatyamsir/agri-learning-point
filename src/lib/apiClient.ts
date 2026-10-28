@@ -182,6 +182,27 @@ class ApiClient {
       method: 'GET',
     });
   }
+
+  // Payment & Enrollment Operations
+  public async createPaymentOrder(courseId: string, amount: number): Promise<any> {
+    return this.request('/api/payments/create-order', {
+      method: 'POST',
+      body: JSON.stringify({ courseId, amount }),
+    });
+  }
+
+  public async verifyPayment(orderId: string, paymentId: string, signature: string, courseId: string): Promise<any> {
+    return this.request('/api/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify({ orderId, paymentId, signature, courseId }),
+    });
+  }
+
+  public async getStudentEnrollments(): Promise<any> {
+    return this.request('/api/payments/enrollments', {
+      method: 'GET',
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

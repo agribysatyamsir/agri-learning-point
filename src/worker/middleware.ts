@@ -17,6 +17,10 @@ export function json(data: any, status = 200, headers: Record<string, string> = 
   });
 }
 
+export function errorResponse(error: string, message: string, status = 400): Response {
+  return json({ error, message }, status);
+}
+
 export function handleOptions(): Response {
   return new Response(null, {
     status: 204,

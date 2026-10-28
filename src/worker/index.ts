@@ -11,6 +11,7 @@ import { json, handleOptions } from './middleware';
 import { handleRegister, handleLogin, handleVerifySession, handleLogout } from './auth';
 import { handleStartExam, handleSyncExam, handleSubmitExam, handleGetExamResult } from './exam';
 import { handleAIApi } from './ai/jobs';
+import { handleCreateOrder, handleVerifyPayment, handleRazorpayWebhook, handleGetStudentEnrollments } from './payments';
 
 export default {
   async fetch(request: Request, env: WorkerEnv, _ctx?: any): Promise<Response> {
@@ -73,6 +74,23 @@ export default {
       // AI Question Factory Admin Routes
       if (url.pathname.startsWith('/api/admin/ai/')) {
         return handleAIApi(request, env);
+      }
+
+      // Payments & Course Entitlements Routes
+      if (url.pathname === '/api/payments/create-order' && request.method === 'POST') {
+        return handleCreateOrder(request, env);
+      }
+
+      if (url.pathname === '/api/payments/verify' && request.method === 'POST') {
+        return handleVerifyPayment(request, env);
+      }
+
+      if (url.pathname === '/api/payments/enrollments' && request.method === 'GET') {
+        return handleGetStudentEnrollments(request, env);
+      }
+
+      if (url.pathname === '/api/webhooks/razorpay' && request.method === 'POST') {
+        return handleRazorpayWebhook(request, env);
       }
 
       return json({ error: 'NOT_FOUND', message: `API route ${url.pathname} not found.` }, 404);
