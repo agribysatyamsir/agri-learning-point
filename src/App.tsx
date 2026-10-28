@@ -17,6 +17,7 @@ import { ExamRunnerPage } from './pages/ExamRunnerPage';
 import { ExamResultsPage } from './pages/ExamResultsPage';
 import { AdminPage } from './pages/AdminPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { AuthProvider } from './context/AuthContext';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
@@ -49,8 +50,9 @@ const LegacyExamRedirect: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
+      <AuthProvider>
+        <Layout>
+          <Routes>
           {/* Public Streams & Catalogs */}
           <Route path="/" element={<HomePage />} />
           <Route path="/exams" element={<ExamsPage />} />
@@ -91,7 +93,8 @@ export const App: React.FC = () => {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Layout>
-    </BrowserRouter>
+    </AuthProvider>
+  </BrowserRouter>
   );
 };
 

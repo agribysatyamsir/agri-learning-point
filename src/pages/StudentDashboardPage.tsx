@@ -16,27 +16,20 @@ import { Button } from '../components/ui/Button';
 import { Card3D } from '../components/ui/Card3D';
 import { Badge } from '../components/ui/Badge';
 import { COURSES, TEST_SERIES } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
 
 export const StudentDashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const [student, setStudent] = useState<any>(null);
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    const raw = localStorage.getItem('lp_student_session');
-    if (raw) {
-      setStudent(JSON.parse(raw));
-    } else {
-      // Default fallback demo student
-      setStudent({
-        name: 'Aspirant',
-        phone: '9876543210',
-        targetExam: 'IBPS AFO',
-      });
+    if (!isLoading && !isAuthenticated) {
+      navigate('/login');
     }
-  }, []);
+  }, [isLoading, isAuthenticated, navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('lp_student_session');
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -49,13 +42,13 @@ export const StudentDashboardPage: React.FC = () => {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Badge variant="emerald">Enrolled Student</Badge>
-            <span className="text-xs text-slate-400 font-mono">+91 {student?.phone}</span>
+            <span className="text-xs text-slate-400 font-mono">+91 {user?.phone || '9876543210'}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Welcome back, {student?.name || 'Aspirant'}!
+            Welcome back, {user?.fullName || 'Aspirant'}!
           </h1>
           <p className="text-xs sm:text-sm text-slate-400">
-            Target Focus: <strong className="text-emerald-400">{student?.targetExam || 'IBPS AFO Mains'}</strong>
+            Target Focus: <strong className="text-emerald-400">{user?.targetExam || 'IBPS AFO Mains'}</strong>
           </p>
         </div>
 

@@ -16,6 +16,7 @@ import { ExamRunnerPage } from '../pages/ExamRunnerPage';
 import { ExamResultsPage } from '../pages/ExamResultsPage';
 import { AdminPage } from '../pages/AdminPage';
 import { LegalPage } from '../pages/LegalPage';
+import { AuthProvider } from '../context/AuthContext';
 
 describe('Comprehensive Section Verification across Learning Point Platform', () => {
   afterEach(() => {
@@ -85,7 +86,9 @@ describe('Comprehensive Section Verification across Learning Point Platform', ()
   it('6. LoginPage renders 10-digit mobile number, password, and single-device notice', () => {
     render(
       <MemoryRouter>
-        <LoginPage />
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
       </MemoryRouter>
     );
     expect(screen.getAllByText(/Student Login/i).length).toBeGreaterThan(0);
@@ -96,7 +99,9 @@ describe('Comprehensive Section Verification across Learning Point Platform', ()
   it('7. RegisterPage renders registration form with target exam selector', () => {
     render(
       <MemoryRouter>
-        <RegisterPage />
+        <AuthProvider>
+          <RegisterPage />
+        </AuthProvider>
       </MemoryRouter>
     );
     expect(screen.getAllByText(/Create Your Account/i).length).toBeGreaterThan(0);
@@ -107,7 +112,9 @@ describe('Comprehensive Section Verification across Learning Point Platform', ()
   it('8. StudentDashboardPage renders active enrolled courses, validity, and receipts', () => {
     render(
       <MemoryRouter>
-        <StudentDashboardPage />
+        <AuthProvider>
+          <StudentDashboardPage />
+        </AuthProvider>
       </MemoryRouter>
     );
     expect(screen.getAllByText(/Welcome back/i).length).toBeGreaterThan(0);

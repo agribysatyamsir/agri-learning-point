@@ -4,9 +4,11 @@ import { User, Smartphone, Lock, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card3D } from '../components/ui/Card3D';
 import { Badge } from '../components/ui/Badge';
+import { useAuth } from '../context/AuthContext';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [targetExam, setTargetExam] = useState('IBPS AFO');
@@ -14,7 +16,7 @@ export const RegisterPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -29,19 +31,21 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
+    if (!name.trim()) {
+      setError('Please enter your full name.');
+      return;
+    }
+
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      await register(name.trim(), cleanedPhone, targetExam, password);
       setIsLoading(false);
-      localStorage.setItem('lp_student_session', JSON.stringify({
-        token: 'session_' + Math.random().toString(36).substring(2),
-        phone: cleanedPhone,
-        name: name || 'Aspirant',
-        targetExam,
-        loggedInAt: new Date().toISOString(),
-      }));
       navigate('/dashboard');
-    }, 800);
+    } catch (err: any) {
+      setIsLoading(false);
+      setError(err.message || 'Registration failed. Please try again.');
+    }
   };
 
   return (

@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, Smartphone, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Lock, Smartphone, ShieldCheck, AlertCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card3D } from '../components/ui/Card3D';
 import { Badge } from '../components/ui/Badge';
+import { useAuth } from '../context/AuthContext';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { login, sessionRevokedMessage, clearRevokedMessage } = useAuth();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    clearRevokedMessage();
 
     // Validate 10-digit Indian Mobile Number
     const cleanedPhone = phone.trim().replace(/\D/g, '');
@@ -30,18 +33,14 @@ export const LoginPage: React.FC = () => {
 
     setIsLoading(true);
 
-    // Simulated Authentication & Single Active Login Session Token Generation
-    setTimeout(() => {
+    try {
+      await login(cleanedPhone, password);
       setIsLoading(false);
-      // Persist student session
-      localStorage.setItem('lp_student_session', JSON.stringify({
-        token: 'session_' + Math.random().toString(36).substring(2),
-        phone: cleanedPhone,
-        name: 'Aspirant',
-        loggedInAt: new Date().toISOString(),
-      }));
       navigate('/dashboard');
-    }, 800);
+    } catch (err: any) {
+      setIsLoading(false);
+      setError(err.message || 'Login failed. Please check your credentials.');
+    }
   };
 
   return (
@@ -55,6 +54,16 @@ export const LoginPage: React.FC = () => {
           <h1 className="text-2xl font-black text-white tracking-tight">Student Login</h1>
           <p className="text-xs text-slate-400">Sign in with your mobile number to access enrolled batches and tests.</p>
         </div>
+
+        {sessionRevokedMessage && (
+          <div className="p-3.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Session Revoked</p>
+              <p>{sessionRevokedMessage}</p>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="p-3.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
@@ -85,7 +94,7 @@ export const LoginPage: React.FC = () => {
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
               <label className="text-xs font-semibold text-slate-300">Password</label>
-              <a href="#" className="text-[11px] text-emerald-400 hover:underline">Forgot password?</a>
+              <span className="text-[11px] text-emerald-400 cursor-pointer hover:underline">Forgot password?</span>
             </div>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-500" />

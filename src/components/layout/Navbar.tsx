@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, BookOpen, GraduationCap, FileCheck2, Sparkles, User, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useAuth } from '../../context/AuthContext';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, isAuthenticated } = useAuth();
 
   const navLinks = [
     { label: 'Exams', href: '/exams', icon: GraduationCap },
@@ -63,12 +65,21 @@ export const Navbar: React.FC = () => {
 
           {/* Action CTAs */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
-                <User className="w-4 h-4" />
-                Login
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm" className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300">
+                  <User className="w-4 h-4" />
+                  {user?.fullName?.split(' ')[0] || 'Dashboard'}
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
+                  <User className="w-4 h-4" />
+                  Login
+                </Button>
+              </Link>
+            )}
             <Link to="/courses">
               <Button variant="primary" size="sm" className="font-semibold shadow-md">
                 Explore Courses
@@ -78,9 +89,9 @@ export const Navbar: React.FC = () => {
 
           {/* Mobile menu button */}
           <div className="flex md:hidden items-center gap-2">
-            <Link to="/login">
+            <Link to={isAuthenticated ? "/dashboard" : "/login"}>
               <Button variant="ghost" size="sm" className="p-2">
-                <User className="w-5 h-5" />
+                <User className="w-5 h-5 text-emerald-400" />
               </Button>
             </Link>
             <button
