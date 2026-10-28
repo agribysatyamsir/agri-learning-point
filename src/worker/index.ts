@@ -10,6 +10,7 @@ import { WorkerEnv } from './types';
 import { json, handleOptions } from './middleware';
 import { handleRegister, handleLogin, handleVerifySession, handleLogout } from './auth';
 import { handleStartExam, handleSyncExam, handleSubmitExam, handleGetExamResult } from './exam';
+import { handleAIApi } from './ai/jobs';
 
 export default {
   async fetch(request: Request, env: WorkerEnv, _ctx?: any): Promise<Response> {
@@ -67,6 +68,11 @@ export default {
 
       if (url.pathname.startsWith('/api/exam/result/') && request.method === 'GET') {
         return handleGetExamResult(request, env);
+      }
+
+      // AI Question Factory Admin Routes
+      if (url.pathname.startsWith('/api/admin/ai/')) {
+        return handleAIApi(request, env);
       }
 
       return json({ error: 'NOT_FOUND', message: `API route ${url.pathname} not found.` }, 404);

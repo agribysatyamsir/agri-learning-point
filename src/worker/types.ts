@@ -3,7 +3,7 @@
  */
 
 export interface WorkerEnv {
-  ASSETS: {
+  ASSETS?: {
     fetch: (request: Request) => Promise<Response>;
   };
   SUPABASE_URL?: string;

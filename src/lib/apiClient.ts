@@ -148,6 +148,40 @@ class ApiClient {
       method: 'GET',
     });
   }
+
+  // AI Factory Administrative Operations
+  public async generateAIQuestions(subject: string, topic: string, difficulty = 'medium', count = 5): Promise<any> {
+    return this.request('/api/admin/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify({ subject, topic, difficulty, count }),
+    });
+  }
+
+  public async getAIJobs(): Promise<any> {
+    return this.request('/api/admin/ai/jobs', {
+      method: 'GET',
+    });
+  }
+
+  public async pauseAIJob(jobId: string): Promise<any> {
+    return this.request('/api/admin/ai/pause', {
+      method: 'POST',
+      body: JSON.stringify({ jobId }),
+    });
+  }
+
+  public async resumeAIJob(jobId: string): Promise<any> {
+    return this.request('/api/admin/ai/resume', {
+      method: 'POST',
+      body: JSON.stringify({ jobId }),
+    });
+  }
+
+  public async getAIHealth(): Promise<any> {
+    return this.request('/api/admin/ai/health', {
+      method: 'GET',
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
