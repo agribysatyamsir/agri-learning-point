@@ -120,6 +120,34 @@ class ApiClient {
       localStorage.removeItem('lp_student_session');
     }
   }
+
+  // Examination Operations
+  public async startExam(testId = 'test-1'): Promise<any> {
+    return this.request('/api/exam/start', {
+      method: 'POST',
+      body: JSON.stringify({ testId }),
+    });
+  }
+
+  public async syncResponses(attemptId: string, responses: Record<string, string>): Promise<any> {
+    return this.request('/api/exam/sync', {
+      method: 'POST',
+      body: JSON.stringify({ attemptId, responses }),
+    });
+  }
+
+  public async submitExam(attemptId: string, responses: Record<string, string>): Promise<any> {
+    return this.request('/api/exam/submit', {
+      method: 'POST',
+      body: JSON.stringify({ attemptId, responses }),
+    });
+  }
+
+  public async getExamResult(attemptId: string): Promise<any> {
+    return this.request(`/api/exam/result/${attemptId}`, {
+      method: 'GET',
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

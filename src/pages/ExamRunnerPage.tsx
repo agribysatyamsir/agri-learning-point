@@ -7,25 +7,31 @@ import {
   Bookmark, 
   CheckCircle, 
   AlertCircle, 
-  Send, 
   Menu, 
   X, 
   ShieldAlert,
-  Sparkles 
+  Loader2
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { apiClient } from '../lib/apiClient';
+import { saveLocalAttempt, getLocalAttempt, clearLocalAttempt } from '../lib/exam/indexedDb';
 
-interface Question {
+interface SanitizedOption {
   id: string;
-  statement: string;
-  options: { id: string; text: string }[];
-  correctOptionId: string;
-  explanation: string;
-  subject: string;
+  text: string;
 }
 
-const SAMPLE_QUESTIONS: Question[] = [
+interface SanitizedQuestion {
+  id: string;
+  subject: string;
+  topic?: string;
+  statement: string;
+  difficulty?: string;
+  options: SanitizedOption[];
+}
+
+const INITIAL_SANITIZED_QUESTIONS: SanitizedQuestion[] = [
   {
     id: 'q-1',
     subject: 'Agronomy & Soil Science',
@@ -36,8 +42,6 @@ const SAMPLE_QUESTIONS: Question[] = [
       { id: 'opt-3', text: 'Azospirillum brasilense' },
       { id: 'opt-4', text: 'Blue Green Algae (Anabaena)' },
     ],
-    correctOptionId: 'opt-2',
-    explanation: 'Rhizobium forms symbiotic nodules with legumes to fix atmospheric nitrogen. Azotobacter and Azospirillum are free-living and associative, whereas Blue Green Algae is predominantly used in wetland rice paddies.',
   },
   {
     id: 'q-2',
@@ -49,8 +53,6 @@ const SAMPLE_QUESTIONS: Question[] = [
       { id: 'opt-3', text: '5.0% of sum insured' },
       { id: 'opt-4', text: '2.5% of sum insured' },
     ],
-    correctOptionId: 'opt-2',
-    explanation: 'Under PMFBY, the maximum premium payable by farmers is 2.0% for Kharif crops, 1.5% for Rabi food & oilseeds, and 5.0% for commercial/annual horticultural crops.',
   },
   {
     id: 'q-3',
@@ -62,21 +64,17 @@ const SAMPLE_QUESTIONS: Question[] = [
       { id: 'opt-3', text: '32°C to 35°C' },
       { id: 'opt-4', text: '38°C to 42°C' },
     ],
-    correctOptionId: 'opt-2',
-    explanation: 'Lycopene development in tomatoes is optimal between 21°C and 24°C. Temperatures exceeding 27°C inhibit lycopene synthesis while above 30°C only yellow carotene is formed.',
   },
   {
     id: 'q-4',
     subject: 'Plant Pathology & Entomology',
-    statement: 'The vector responsible for the transmission of Potato Leaf Roll Virus (PLRV) in field conditions is:',
+    statement: 'The insect vector primarily responsible for the transmission of Potato Leaf Roll Virus (PLRV) under field conditions is:',
     options: [
       { id: 'opt-1', text: 'Bemisia tabaci (Whitefly)' },
       { id: 'opt-2', text: 'Myzus persicae (Green peach aphid)' },
       { id: 'opt-3', text: 'Nephotettix virescens (Green leafhopper)' },
       { id: 'opt-4', text: 'Thrips palmi' },
     ],
-    correctOptionId: 'opt-2',
-    explanation: 'Potato Leaf Roll Virus (PLRV) is persistently transmitted primarily by Myzus persicae (Green peach aphid). Whitefly transmits Gemini viruses such as Yellow Mosaic.',
   },
   {
     id: 'q-5',
@@ -88,8 +86,6 @@ const SAMPLE_QUESTIONS: Question[] = [
       { id: 'opt-3', text: 'Red Sindhi' },
       { id: 'opt-4', text: 'Tharparkar' },
     ],
-    correctOptionId: 'opt-1',
-    explanation: 'Gir cattle originate in the Gir forests of Saurashtra, Gujarat, known for high milk yield and heat tolerance. Sahiwal originated in Montgomery (Pakistan).',
   },
 ];
 
@@ -97,95 +93,159 @@ export const ExamRunnerPage: React.FC = () => {
   const { testId } = useParams<{ testId: string }>();
   const navigate = useNavigate();
 
+  const [attemptId, setAttemptId] = useState<string>('att_live_01');
+  const [expiresAt, setExpiresAt] = useState<string>('');
+  const [questions, setQuestions] = useState<SanitizedQuestion[]>(INITIAL_SANITIZED_QUESTIONS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({});
-  const [timeLeft, setTimeLeft] = useState(45 * 60); // 45 minutes countdown
+  const [timeLeft, setTimeLeft] = useState<number>(45 * 60);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing'>('synced');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const timerRef = useRef<any>(null);
 
-  // Authoritative countdown timer simulation
+  // Initialize or resume attempt from server
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initExam() {
+      try {
+        const startRes = await apiClient.startExam(testId || 'test-1');
+        if (!isMounted) return;
+
+        if (startRes && startRes.attemptId) {
+          const currentAttemptId = startRes.attemptId;
+          setAttemptId(currentAttemptId);
+          setExpiresAt(startRes.expiresAt);
+          if (startRes.questions && startRes.questions.length > 0) {
+            setQuestions(startRes.questions);
+          }
+
+          // Restore local attempt cache if student refreshed browser
+          const cached = await getLocalAttempt(currentAttemptId);
+          if (cached && isMounted) {
+            setSelectedAnswers(cached.responses || {});
+            setMarkedForReview(cached.markedForReview || {});
+          }
+
+          // Calculate authoritative time remaining derived from server expiresAt
+          const remainingSecs = Math.max(0, Math.floor((new Date(startRes.expiresAt).getTime() - Date.now()) / 1000));
+          setTimeLeft(remainingSecs);
+        }
+      } catch {
+        // Fallback initialized
+      }
+    }
+
+    initExam();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [testId]);
+
+  // Server-Authoritative Timer derived from server expiresAt
   useEffect(() => {
     timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
+      if (expiresAt) {
+        const remainingSecs = Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000));
+        setTimeLeft(remainingSecs);
+        if (remainingSecs <= 0) {
           clearInterval(timerRef.current);
           handleFinalSubmit();
-          return 0;
         }
-        return prev - 1;
-      });
+      } else {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            handleFinalSubmit();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, []);
+  }, [expiresAt, selectedAnswers, attemptId]);
 
-  // 120s Batch Sync simulation
+  // 120s Background Sync to Edge Server
   useEffect(() => {
-    const syncInterval = setInterval(() => {
+    if (!attemptId || Object.keys(selectedAnswers).length === 0) return;
+
+    const syncInterval = setInterval(async () => {
       setSyncStatus('syncing');
-      setTimeout(() => setSyncStatus('synced'), 600);
+      try {
+        await apiClient.syncResponses(attemptId, selectedAnswers);
+        setSyncStatus('synced');
+      } catch {
+        // Retries on next interval
+      }
     }, 120000);
 
     return () => clearInterval(syncInterval);
-  }, []);
+  }, [attemptId, selectedAnswers]);
 
-  const currentQ = SAMPLE_QUESTIONS[currentIndex];
+  const currentQ = questions[currentIndex] || INITIAL_SANITIZED_QUESTIONS[0];
 
   const handleSelectOption = (optionId: string) => {
-    setSelectedAnswers((prev) => ({
-      ...prev,
+    if (!currentQ) return;
+    const updated = {
+      ...selectedAnswers,
       [currentQ.id]: optionId,
-    }));
+    };
+    setSelectedAnswers(updated);
+
+    // Save to IndexedDB locally within milliseconds
+    if (attemptId) {
+      saveLocalAttempt({
+        attemptId,
+        testId: testId || 'test-1',
+        expiresAt: expiresAt || new Date(Date.now() + 45 * 60 * 1000).toISOString(),
+        responses: updated,
+        markedForReview,
+        lastSavedAt: new Date().toISOString(),
+      });
+    }
   };
 
   const handleToggleReview = () => {
-    setMarkedForReview((prev) => ({
-      ...prev,
-      [currentQ.id]: !prev[currentQ.id],
-    }));
+    if (!currentQ) return;
+    const updated = {
+      ...markedForReview,
+      [currentQ.id]: !markedForReview[currentQ.id],
+    };
+    setMarkedForReview(updated);
+
+    if (attemptId) {
+      saveLocalAttempt({
+        attemptId,
+        testId: testId || 'test-1',
+        expiresAt: expiresAt || new Date(Date.now() + 45 * 60 * 1000).toISOString(),
+        responses: selectedAnswers,
+        markedForReview: updated,
+        lastSavedAt: new Date().toISOString(),
+      });
+    }
   };
 
-  const handleFinalSubmit = () => {
-    // Calculate final scores
-    let correct = 0;
-    let wrong = 0;
-    let unattempted = 0;
+  const handleFinalSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setShowSubmitModal(false);
 
-    SAMPLE_QUESTIONS.forEach((q) => {
-      const selected = selectedAnswers[q.id];
-      if (!selected) {
-        unattempted++;
-      } else if (selected === q.correctOptionId) {
-        correct++;
-      } else {
-        wrong++;
-      }
-    });
-
-    const positiveMarks = correct * 1.0;
-    const negativeMarks = wrong * 0.25;
-    const finalScore = positiveMarks - negativeMarks;
-
-    const resultPayload = {
-      testId,
-      totalQuestions: SAMPLE_QUESTIONS.length,
-      correct,
-      wrong,
-      unattempted,
-      positiveMarks,
-      negativeMarks,
-      finalScore: Number(finalScore.toFixed(2)),
-      timeSpentSeconds: 45 * 60 - timeLeft,
-      submittedAnswers: selectedAnswers,
-      submittedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem('lp_last_test_result', JSON.stringify(resultPayload));
-    navigate('/exam/results/attempt-live-01');
+    try {
+      const result = await apiClient.submitExam(attemptId || 'att_fallback', selectedAnswers);
+      await clearLocalAttempt(attemptId);
+      localStorage.setItem('lp_last_test_result', JSON.stringify(result));
+      navigate(`/exam/results/${attemptId || 'att-01'}`);
+    } catch {
+      setIsSubmitting(false);
+      navigate(`/exam/results/${attemptId || 'att-01'}`);
+    }
   };
 
   const formatTime = (secs: number) => {
@@ -228,8 +288,9 @@ export const ExamRunnerPage: React.FC = () => {
             size="sm"
             onClick={() => setShowSubmitModal(true)}
             className="hidden sm:inline-flex"
+            disabled={isSubmitting}
           >
-            Submit Paper
+            {isSubmitting ? 'Submitting...' : 'Submit Paper'}
           </Button>
 
           <button
@@ -249,7 +310,7 @@ export const ExamRunnerPage: React.FC = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Badge variant="emerald">Question {currentIndex + 1} of {SAMPLE_QUESTIONS.length}</Badge>
+                <Badge variant="emerald">Question {currentIndex + 1} of {questions.length}</Badge>
                 <span className="text-xs text-slate-400">{currentQ.subject}</span>
               </div>
               <button
@@ -312,7 +373,7 @@ export const ExamRunnerPage: React.FC = () => {
             </Button>
 
             <div className="flex items-center gap-3">
-              {currentIndex < SAMPLE_QUESTIONS.length - 1 ? (
+              {currentIndex < questions.length - 1 ? (
                 <Button
                   variant="primary"
                   size="sm"
@@ -326,6 +387,7 @@ export const ExamRunnerPage: React.FC = () => {
                   variant="gold"
                   size="sm"
                   onClick={() => setShowSubmitModal(true)}
+                  disabled={isSubmitting}
                 >
                   Submit Final Test
                 </Button>
@@ -354,7 +416,7 @@ export const ExamRunnerPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-slate-800" />
-                <span>Unattempted ({SAMPLE_QUESTIONS.length - answeredCount})</span>
+                <span>Unattempted ({questions.length - answeredCount})</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-amber-500" />
@@ -364,7 +426,7 @@ export const ExamRunnerPage: React.FC = () => {
 
             {/* Matrix */}
             <div className="grid grid-cols-5 gap-2.5 pt-2">
-              {SAMPLE_QUESTIONS.map((q, idx) => {
+              {questions.map((q, idx) => {
                 const isCurrent = idx === currentIndex;
                 const isAnswered = Boolean(selectedAnswers[q.id]);
                 const isMarked = Boolean(markedForReview[q.id]);
@@ -396,6 +458,7 @@ export const ExamRunnerPage: React.FC = () => {
                 setPaletteOpen(false);
                 setShowSubmitModal(true);
               }}
+              disabled={isSubmitting}
             >
               Submit Paper
             </Button>
@@ -411,7 +474,7 @@ export const ExamRunnerPage: React.FC = () => {
               <ShieldAlert className="w-12 h-12 text-amber-400 mx-auto" />
               <h3 className="text-xl font-bold text-white">Confirm Test Submission</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Once submitted, answers cannot be modified. Your attempt will be evaluated server-side and recorded on the leaderboard.
+                Once submitted, answers cannot be modified. Your attempt will be evaluated server-side with -0.25 negative marking.
               </p>
             </div>
 
@@ -422,7 +485,7 @@ export const ExamRunnerPage: React.FC = () => {
               </div>
               <div>
                 <span className="text-slate-400">Unanswered</span>
-                <p className="text-base font-bold text-slate-300 mt-0.5">{SAMPLE_QUESTIONS.length - answeredCount}</p>
+                <p className="text-base font-bold text-slate-300 mt-0.5">{questions.length - answeredCount}</p>
               </div>
               <div>
                 <span className="text-slate-400">Marked</span>
@@ -442,8 +505,9 @@ export const ExamRunnerPage: React.FC = () => {
                 variant="primary"
                 className="w-full"
                 onClick={handleFinalSubmit}
+                disabled={isSubmitting}
               >
-                Yes, Submit Now
+                {isSubmitting ? 'Evaluating...' : 'Yes, Submit Now'}
               </Button>
             </div>
           </div>

@@ -9,6 +9,7 @@
 import { WorkerEnv } from './types';
 import { json, handleOptions } from './middleware';
 import { handleRegister, handleLogin, handleVerifySession, handleLogout } from './auth';
+import { handleStartExam, handleSyncExam, handleSubmitExam, handleGetExamResult } from './exam';
 
 export default {
   async fetch(request: Request, env: WorkerEnv, _ctx?: any): Promise<Response> {
@@ -49,6 +50,23 @@ export default {
 
       if (url.pathname === '/api/auth/logout' && request.method === 'POST') {
         return handleLogout(request, env);
+      }
+
+      // Examination CBT Routes
+      if (url.pathname === '/api/exam/start' && request.method === 'POST') {
+        return handleStartExam(request, env);
+      }
+
+      if (url.pathname === '/api/exam/sync' && request.method === 'POST') {
+        return handleSyncExam(request, env);
+      }
+
+      if (url.pathname === '/api/exam/submit' && request.method === 'POST') {
+        return handleSubmitExam(request, env);
+      }
+
+      if (url.pathname.startsWith('/api/exam/result/') && request.method === 'GET') {
+        return handleGetExamResult(request, env);
       }
 
       return json({ error: 'NOT_FOUND', message: `API route ${url.pathname} not found.` }, 404);
