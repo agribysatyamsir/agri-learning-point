@@ -574,7 +574,7 @@ export const HomePage: React.FC = () => {
             },
             {
               q: 'Admission ya batch related koi doubt ho to kisse contact karein?',
-              a: 'Aap direct hamare Admission Helpline number +91 90579 22277 par call ya WhatsApp kar sakte hain, ya Telegram channel @agribysatyamsir par directly connect kar sakte hain.',
+              a: 'Aap direct hamare Telegram channel @agribysatyamsir par connect kar sakte hain ya platform ke Help & Admission Desk par inquiry submit kar sakte hain.',
             },
           ].map((faq, i) => (
             <div key={i} className="p-5 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-2">

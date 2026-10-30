@@ -1,34 +1,18 @@
 import React from 'react';
-import { Phone, MessageCircle, Send, Download, Sparkles } from 'lucide-react';
+import { Send, Download, Sparkles } from 'lucide-react';
 
 export const TopBar: React.FC = () => {
   return (
     <div className="bg-slate-950/95 text-slate-300 text-xs border-b border-slate-800/80 py-1.5 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-        {/* Left: Direct Admission & Support Helpline */}
+        {/* Left: Mentorship & Accreditation */}
         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-[11px] sm:text-xs">
-          <a
-            href="tel:+919057922277"
-            className="flex items-center gap-1.5 text-slate-300 hover:text-emerald-400 font-medium transition-colors"
-          >
-            <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span>Admission Helpline: <strong className="text-white font-mono">+91 90579 22277</strong></span>
-          </a>
-
-          <a
-            href="https://wa.me/919057922277?text=Hello%20Satyam%20Sir,%20I%20want%20to%20enquire%20about%20Agri%20Learning%20Point%20Courses"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden md:flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
-          >
-            <MessageCircle className="w-3.5 h-3.5 shrink-0" />
-            <span>WhatsApp Support</span>
-          </a>
-
-          <div className="hidden lg:flex items-center gap-1.5 text-amber-300/90 font-medium bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
-            <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+          <div className="flex items-center gap-1.5 text-amber-300/90 font-medium bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>Under Guidance of Satyam Sir (8+ Yrs Exp)</span>
           </div>
+          <span className="hidden md:inline text-slate-600">|</span>
+          <span className="hidden md:inline text-slate-400">All-India Agriculture CBT Mock Tests & Live Batches</span>
         </div>
 
         {/* Right: Social Handles & App Link */}

@@ -73,7 +73,7 @@ export const Footer: React.FC = () => {
             <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Student Support</h4>
             <ul className="space-y-2 text-sm">
               <li className="text-slate-300">
-                Helpline: <strong className="text-emerald-400 font-mono">+91 90579 22277</strong>
+                Support: <a href="https://t.me/agribysatyamsir" target="_blank" rel="noreferrer" className="text-sky-400 hover:text-sky-300 font-medium">@agribysatyamsir (Telegram)</a>
               </li>
               <li><Link to="/about" className="hover:text-primary transition-colors">About Satyam Sir</Link></li>
               <li><Link to="/contact" className="hover:text-primary transition-colors">Help & Admission Desk</Link></li>
