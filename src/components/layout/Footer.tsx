@@ -57,23 +57,28 @@ export const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Academics</h4>
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Academics & Tests</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/exams" className="hover:text-primary transition-colors">Exam Categories</Link></li>
               <li><Link to="/courses" className="hover:text-primary transition-colors">Courses & Batches</Link></li>
               <li><Link to="/test-series" className="hover:text-primary transition-colors">Online Test Series</Link></li>
-              <li><Link to="/free-tests" className="hover:text-primary transition-colors">Free Practice Tests</Link></li>
-              <li><Link to="/updates" className="hover:text-primary transition-colors">Exam Notifications</Link></li>
+              <li><Link to="/free-tests" className="hover:text-primary transition-colors">Daily Free Quiz</Link></li>
+              <li><Link to="/previous-year-papers" className="hover:text-primary transition-colors">Previous Year Papers (PYQ)</Link></li>
+              <li><Link to="/current-affairs" className="hover:text-primary transition-colors">Agri Current Affairs</Link></li>
+              <li><Link to="/job-alerts" className="hover:text-primary transition-colors">Govt. Job Alerts</Link></li>
             </ul>
           </div>
 
           {/* Platform & Support */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Company</h4>
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Student Support</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-              <li><Link to="/contact" className="hover:text-primary transition-colors">Help & Support</Link></li>
+              <li className="text-slate-300">
+                Helpline: <strong className="text-emerald-400 font-mono">+91 90579 22277</strong>
+              </li>
+              <li><Link to="/about" className="hover:text-primary transition-colors">About Satyam Sir</Link></li>
+              <li><Link to="/contact" className="hover:text-primary transition-colors">Help & Admission Desk</Link></li>
               <li><Link to="/faq" className="hover:text-primary transition-colors">FAQs</Link></li>
+              <li><a href="#download-app" className="hover:text-amber-400 transition-colors">Download Android App</a></li>
               <li><Link to="/admin" className="hover:text-amber-400 transition-colors flex items-center gap-1">Admin Portal</Link></li>
             </ul>
           </div>

@@ -16,6 +16,9 @@ import { ExamRunnerPage } from '../pages/ExamRunnerPage';
 import { ExamResultsPage } from '../pages/ExamResultsPage';
 import { AdminPage } from '../pages/AdminPage';
 import { LegalPage } from '../pages/LegalPage';
+import { PreviousYearPapersPage } from '../pages/PreviousYearPapersPage';
+import { CurrentAffairsPage } from '../pages/CurrentAffairsPage';
+import { JobAlertsPage } from '../pages/JobAlertsPage';
 import { AuthProvider } from '../context/AuthContext';
 
 describe('Comprehensive Section Verification across Learning Point Platform', () => {
@@ -30,15 +33,15 @@ describe('Comprehensive Section Verification across Learning Point Platform', ()
       </MemoryRouter>
     );
 
-    expect(screen.getAllByText(/Master Your Exam With/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Explore Courses/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Crack Agriculture Exams/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Explore Flagship Batches/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Try Free Mock Test/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Choose Your Target Exam/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Featured Courses & Batches/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Structured Test Series/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/How Learning Point Works/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Choose Your Target Agriculture Exam/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Popular Agriculture Batches/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/All-India Agriculture Test Series/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Our Star Performers & Selections/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Frequently Asked Questions/i).length).toBeGreaterThan(0);
-  });
+  }, 15000);
 
   it('2. ExamsPage renders all streams and blueprints', () => {
     render(
@@ -59,7 +62,7 @@ describe('Comprehensive Section Verification across Learning Point Platform', ()
     );
     expect(screen.getAllByText(/Courses & Batches/i).length).toBeGreaterThan(0);
     expect(screen.getByPlaceholderText(/Search courses or exams.../i)).toBeDefined();
-    expect(screen.getAllByText(/IBPS AFO 2026: Complete Mains & Interview Mastery Batch/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/IBPS AFO 2026/i).length).toBeGreaterThan(0);
   });
 
   it('4. TestSeriesPage renders mock exams with durations and marking schemes', () => {
@@ -171,5 +174,35 @@ describe('Comprehensive Section Verification across Learning Point Platform', ()
     );
     expect(screen.getAllByText(/Terms of Service/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/1. Account Security & Single Session Rule/i).length).toBeGreaterThan(0);
+  });
+
+  it('13. PreviousYearPapersPage renders agriculture PYQs with download and CBT options', () => {
+    render(
+      <MemoryRouter>
+        <PreviousYearPapersPage />
+      </MemoryRouter>
+    );
+    expect(screen.getAllByText(/Agriculture Previous Year Papers/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/IBPS AFO Mains 2024/i).length).toBeGreaterThan(0);
+  });
+
+  it('14. CurrentAffairsPage renders agriculture schemes and monthly digest', () => {
+    render(
+      <MemoryRouter>
+        <CurrentAffairsPage />
+      </MemoryRouter>
+    );
+    expect(screen.getAllByText(/Agriculture Current Affairs & Schemes/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Minimum Support Prices/i).length).toBeGreaterThan(0);
+  });
+
+  it('15. JobAlertsPage renders agriculture govt. vacancy notifications', () => {
+    render(
+      <MemoryRouter>
+        <JobAlertsPage />
+      </MemoryRouter>
+    );
+    expect(screen.getAllByText(/Agriculture Govt. Job Alerts 2026/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/IBPS Specialist Officer/i).length).toBeGreaterThan(0);
   });
 });

@@ -15,13 +15,17 @@ import { RegisterPage } from './pages/RegisterPage';
 import { StudentDashboardPage } from './pages/StudentDashboardPage';
 import { ExamRunnerPage } from './pages/ExamRunnerPage';
 import { ExamResultsPage } from './pages/ExamResultsPage';
+import { PreviousYearPapersPage } from './pages/PreviousYearPapersPage';
+import { CurrentAffairsPage } from './pages/CurrentAffairsPage';
+import { JobAlertsPage } from './pages/JobAlertsPage';
 import { AdminPage } from './pages/AdminPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AuthProvider } from './context/AuthContext';
+import { WhatsAppWidget } from './components/ui/WhatsAppWidget';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
-  // Hide Navbar/Footer inside the full-screen examination runner
+  // Hide Navbar/Footer/WhatsApp inside the full-screen examination runner
   const isExamRunner = location.pathname.startsWith('/exam/attempt/');
 
   if (isExamRunner) {
@@ -29,10 +33,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />
+      <WhatsAppWidget />
     </div>
   );
 };
@@ -62,6 +67,9 @@ export const App: React.FC = () => {
           <Route path="/test-series" element={<TestSeriesPage />} />
           <Route path="/test-series/:slug" element={<TestSeriesPage />} />
           <Route path="/free-tests" element={<FreeTestsPage />} />
+          <Route path="/previous-year-papers" element={<PreviousYearPapersPage />} />
+          <Route path="/current-affairs" element={<CurrentAffairsPage />} />
+          <Route path="/job-alerts" element={<JobAlertsPage />} />
           
           {/* Backward compatibility for legacy /exam/:id */}
           <Route path="/exam/:id" element={<LegacyExamRedirect />} />
